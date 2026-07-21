@@ -12,13 +12,15 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22.11.0
-      # IA gratuita sem chave (padrão). Para trocar, veja server/.env.example
+      # RECOMENDADO: Gemini (temas muito melhores via structured output).
+      # Defina AI_PROVIDER=gemini e cadastre a chave como secret no painel do Render.
       - key: AI_PROVIDER
-        value: pollinations
-      # Para usar Gemini/Groq/OpenRouter, defina AI_PROVIDER acima e a chave abaixo
-      # (marque como "secret" no painel do Render em vez de deixar aqui):
-      # - key: GEMINI_API_KEY
-      #   sync: false
+        value: gemini
+      - key: AI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_API_KEY
+        sync: false # <- cole a chave no painel do Render (Environment), não aqui
+      # Alternativa grátis sem chave: troque AI_PROVIDER para "pollinations".
 
     # ------------------------------------------------------------------
     # DISCO PERSISTENTE (opcional, requer plano pago).

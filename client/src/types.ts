@@ -54,12 +54,15 @@ export interface BoardSpec {
   tagline: string;
   emoji: string;
   palette: { bgTop: string; bgBottom: string; good: string; improve: string; action: string };
+  images: string[];
   columns: { good: ColumnMeta; improve: ColumnMeta; action: ColumnMeta };
   dynamic: {
     format: DynamicFormat;
     title: string;
     emoji: string;
+    goal?: string;
     instructions: string;
+    steps?: string[];
     durationMin: number;
     prompt?: string;
     scale?: { label: string; options: string[] };

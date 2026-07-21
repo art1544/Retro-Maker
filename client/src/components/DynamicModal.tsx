@@ -48,7 +48,19 @@ export default function DynamicModal({ dynamic, entries, meId, isHost, onSubmit,
           <div className="spacer" />
           <button className="ghost sm" onClick={onClose}>Fechar</button>
         </div>
-        <p className="muted" style={{ marginTop: 4 }}>{dynamic.instructions}</p>
+        {dynamic.goal && (
+          <div className="pill" style={{ display: 'inline-block', marginTop: 6, borderColor: 'var(--grass)' }}>🎯 {dynamic.goal}</div>
+        )}
+        <p className="muted" style={{ marginTop: 8 }}>{dynamic.instructions}</p>
+
+        {dynamic.steps && dynamic.steps.length > 0 && (
+          <div className="card-panel" style={{ padding: '10px 14px', background: 'var(--panel-2)', marginBottom: 12 }}>
+            <b style={{ fontSize: 13 }}>Como conduzir ({dynamic.durationMin} min)</b>
+            <ol style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 13, lineHeight: 1.5 }}>
+              {dynamic.steps.map((s, i) => <li key={i}>{s}</li>)}
+            </ol>
+          </div>
+        )}
 
         {/* --- meu formulário --- */}
         <div className="card-panel" style={{ padding: 14, background: 'var(--panel-2)' }}>

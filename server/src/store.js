@@ -134,6 +134,17 @@ export function allBoardsWithCards() {
     }));
 }
 
+// Temas e dinâmicas já usados — para a IA gerar sempre algo novo.
+export function usedThemes() {
+  const out = [];
+  for (const b of Object.values(boards)) {
+    const t = b.spec?.themeName;
+    const d = b.spec?.dynamic?.title;
+    if (t) out.push(d ? `${t} (dinâmica: ${d})` : t);
+  }
+  return out;
+}
+
 export function deleteBoard(id) {
   delete boards[id];
   persist();

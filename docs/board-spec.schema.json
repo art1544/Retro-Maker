@@ -3,12 +3,19 @@
   "title": "RetroMaker BoardSpec",
   "description": "Contrato de tema + dinâmica de uma retrospectiva. Ver docs/BOARD_SPEC_CONSTITUTION.md",
   "type": "object",
-  "required": ["themeName", "tagline", "emoji", "palette", "columns", "dynamic"],
+  "required": ["themeName", "tagline", "emoji", "palette", "images", "columns", "dynamic"],
   "additionalProperties": false,
   "properties": {
     "themeName": { "type": "string", "minLength": 1, "maxLength": 60 },
     "tagline": { "type": "string", "maxLength": 80 },
     "emoji": { "type": "string", "minLength": 1, "maxLength": 8 },
+    "images": {
+      "type": "array",
+      "description": "3 a 6 prompts de arte (em inglês) descrevendo cenas/objetos icônicos do tema, para gerar ilustrações.",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+    },
     "palette": {
       "type": "object",
       "required": ["bgTop", "bgBottom", "good", "improve", "action"],
@@ -33,13 +40,21 @@
     },
     "dynamic": {
       "type": "object",
-      "required": ["format", "title", "emoji", "instructions", "durationMin"],
+      "required": ["format", "title", "emoji", "goal", "instructions", "steps", "durationMin"],
       "properties": {
         "format": { "enum": ["two-truths", "prompt-response", "scale-rating"] },
         "title": { "type": "string", "minLength": 1, "maxLength": 60 },
         "emoji": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "goal": { "type": "string", "maxLength": 160 },
         "instructions": { "type": "string", "maxLength": 280 },
-        "durationMin": { "type": "integer", "minimum": 5, "maximum": 15 },
+        "steps": {
+          "type": "array",
+          "description": "4 a 6 passos curtos para conduzir a atividade em 5-10 min.",
+          "minItems": 3,
+          "maxItems": 6,
+          "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+        },
+        "durationMin": { "type": "integer", "minimum": 5, "maximum": 10 },
         "prompt": { "type": "string", "maxLength": 200 },
         "scale": {
           "type": "object",

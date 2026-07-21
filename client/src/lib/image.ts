@@ -1,3 +1,10 @@
+// Gera uma URL de imagem temática (Pollinations — grátis, sem chave/login).
+// Roda no navegador via <img src>, então não depende de nada no servidor.
+export function themeImageUrl(prompt: string, w = 512, h = 512, seed = 1) {
+  const styled = `${prompt}, vibrant, high detail, digital art, no text`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(styled)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
+}
+
 // Read an image File and return a downscaled data URL to keep board payloads light.
 export async function fileToScaledDataURL(file: File, maxDim = 1000, quality = 0.85): Promise<string> {
   const dataUrl = await new Promise<string>((resolve, reject) => {

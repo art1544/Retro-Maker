@@ -9,7 +9,7 @@ import FreeItemView from '../components/FreeItemView';
 import Cursors from '../components/Cursors';
 import TimerBubble from '../components/TimerBubble';
 import DynamicModal from '../components/DynamicModal';
-import { fileToScaledDataURL, imageDims } from '../lib/image';
+import { fileToScaledDataURL, imageDims, themeImageUrl } from '../lib/image';
 
 const COLS: { id: 'good' | 'improve' | 'action'; x: number }[] = [
   { id: 'good', x: 60 },
@@ -203,6 +203,17 @@ export default function BoardView() {
   const cards = Object.values(board.cards);
   const spec = board.spec;
   const M = columnMetaFromSpec(spec);
+  const imgSeed = Math.abs([...board.id].reduce((a, c) => a * 31 + c.charCodeAt(0), 7)) % 90000;
+  const imgs = spec.images || [];
+  // pontos de decoração ao redor das colunas (não cobrem os cards)
+  const stickerSpots = [
+    { x: -300, y: 30, s: 230, r: -5 },
+    { x: 1140, y: 30, s: 230, r: 5 },
+    { x: -300, y: 430, s: 230, r: 4 },
+    { x: 1140, y: 430, s: 230, r: -4 },
+    { x: -300, y: 820, s: 230, r: 3 },
+    { x: 1140, y: 820, s: 230, r: -3 },
+  ];
 
   return (
     <div style={{ height: '100%' }}>
@@ -297,6 +308,26 @@ export default function BoardView() {
           background: `radial-gradient(1200px 620px at 82% -12%, ${spec.palette.bgTop}55, transparent 60%), radial-gradient(900px 520px at 0% 112%, ${spec.palette.bgBottom}55, transparent 55%)`,
         }} />
         <div className="world" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>
+          {/* decorative theme art (não interativo) */}
+          {imgs.length > 0 && (
+            <div style={{ position: 'absolute', left: 60, top: -210, width: 1020, height: 175, borderRadius: 18, overflow: 'hidden', pointerEvents: 'none', border: '1px solid var(--line)', boxShadow: 'var(--shadow)' }}>
+              <img src={themeImageUrl(imgs[0], 1024, 256, imgSeed)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.05) 100%)' }} />
+              <div style={{ position: 'absolute', left: 26, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>
+                <div style={{ fontSize: 40, fontWeight: 800, lineHeight: 1.05 }}>{spec.emoji} {spec.themeName}</div>
+                <div style={{ fontSize: 18, opacity: 0.95, maxWidth: 620 }}>{spec.tagline}</div>
+              </div>
+            </div>
+          )}
+          {imgs.slice(1).map((p, i) => {
+            const spot = stickerSpots[i % stickerSpots.length];
+            return (
+              <div key={i} style={{ position: 'absolute', left: spot.x, top: spot.y, width: spot.s, height: spot.s, transform: `rotate(${spot.r}deg)`, borderRadius: 16, overflow: 'hidden', pointerEvents: 'none', border: '4px solid #fff', boxShadow: 'var(--shadow)', background: 'var(--panel)' }}>
+                <img src={themeImageUrl(p, 512, 512, imgSeed + i + 1)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            );
+          })}
+
           {/* columns */}
           {COLS.map((c) => {
             const meta = M[c.id];

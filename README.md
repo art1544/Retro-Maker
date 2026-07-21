@@ -21,7 +21,7 @@ Ferramenta web de **retrospectivas de Scrum** colaborativas, em tempo real e **t
 - **Timer regressivo sincronizado** ⏱️: presets de 5/10/15 min (ou custom), controlado pelo líder e igual para todos — perfeito pra cronometrar a dinâmica.
 - **Cursores ao vivo**: mouse de cada pessoa em tempo real, com nome e cor.
 - **Multi-sessão ao vivo**: várias pessoas no mesmo board simultaneamente.
-- **Temas e dinâmicas por IA** 🤖: ao criar a retro, você digita um tema (ou deixa a IA escolher algo em alta). A IA gera cores, rótulos das colunas, tagline e uma dinâmica no formato certo — sempre seguindo um contrato fixo pra nunca quebrar. Suporta 3 formatos de dinâmica: **duas verdades e uma mentira**, **pergunta temática** e **classifique-se numa escala**.
+- **Temas e dinâmicas por IA** 🤖: ao criar a retro, você digita um tema (ou deixa a IA escolher algo em alta). A IA gera cores, rótulos das colunas, tagline, **ilustrações do tema** (banner + stickers no quadro) e uma **dinâmica elaborada** (objetivo + passo a passo, 5–10 min) — sempre seguindo um contrato fixo pra nunca quebrar. Suporta 3 formatos: **duas verdades e uma mentira**, **pergunta temática** e **classifique-se numa escala**. O gerador recebe a lista de temas já usados e **evita repetir** — cada retro é uma ideia nova.
 - **Regenerar tema** 🎲: o líder pode trocar o tema/dinâmica do board a qualquer momento (botão 🎲 no topo) — a IA gera um novo e todos veem a mudança em tempo real.
 - **Dashboard de métricas**: total de cards por tipo, com filtros — **todas** as retros, um **intervalo** (Retro 1 → 12) ou **seleção específica** (Retro 1 + Retro 15).
 
@@ -105,7 +105,21 @@ A cada board criado, o servidor pede pra uma IA gerar um `BoardSpec` (tema + din
 - **Schema de validação:** [`docs/board-spec.schema.json`](docs/board-spec.schema.json)
 - **Como tudo se conecta:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
-**IA usada:** por padrão **Pollinations** (grátis, **sem chave/login**). Dá pra trocar por Gemini/Groq/OpenRouter criando um `server/.env` (veja `server/.env.example`). Sem internet ou com erro, cai num **banco de temas local** — nunca quebra.
+**IA usada:** por padrão **Pollinations** (grátis, sem chave), mas ela é fraca pra gerar tema/dinâmica bons. **Recomendado: Gemini** — usa *structured output* (a resposta é obrigada a seguir o schema), então os temas saem muito melhores.
+
+Para ativar o Gemini, crie um `server/.env` (baseado em `server/.env.example`) com:
+
+```
+AI_PROVIDER=gemini
+GEMINI_API_KEY=sua_chave_aqui
+# opcional: AI_MODEL=gemini-2.5-flash  (ou gemini-2.5-pro pra máxima qualidade)
+```
+
+Gere a chave em https://aistudio.google.com/apikey. Também dá pra usar Groq/OpenRouter. Sem internet ou com erro, cai num **banco de temas local** — nunca quebra.
+
+> **Testar a chave:** com o servidor rodando, acesse `http://localhost:4000/api/ai/health`. Ele faz uma chamada de teste e retorna `{ ok: true, provider, model, sample }` se estiver tudo certo, ou a mensagem de erro caso contrário.
+
+As **ilustrações** dos temas são geradas pelo [Pollinations Image](https://pollinations.ai) direto no navegador (grátis, sem chave) a partir dos prompts do campo `images` do spec.
 
 > Também dá pra colar um tema manual: gere o JSON numa IA usando o prompt da constituição e envie no corpo do `POST /api/boards` como `{ "spec": { ... } }`.
 

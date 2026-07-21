@@ -22,24 +22,31 @@ Este documento é o **contrato único** que descreve como um tema e uma dinâmic
     "action": "#rrggbb"         // cor da coluna "Ações"
   },
 
+  "images": [                   // 3 a 6 prompts de arte (EM INGLÊS) de cenas/objetos do tema.
+    "epic castle on a hill at sunset, digital art",
+    "..."                       // O 1º vira o banner; os demais viram stickers no quadro.
+  ],
+
   "columns": {                  // SOMENTE rótulos/textos — as chaves são fixas
     "good":    { "title": "string", "emoji": "string", "hint": "string" },
     "improve": { "title": "string", "emoji": "string", "hint": "string" },
     "action":  { "title": "string", "emoji": "string", "hint": "string" }
   },
 
-  "dynamic": {                  // O jogo rápido (10–15 min)
+  "dynamic": {                  // Atividade de grupo ELABORADA (5–10 min)
     "format": "two-truths | prompt-response | scale-rating",
     "title": "string",         // Nome temático do jogo. Ex.: "Jedi ou Sith?"
     "emoji": "string",
+    "goal": "string",          // Objetivo da dinâmica (máx. 160 chars)
     "instructions": "string",  // Como jogar, no clima do tema (máx. 280 chars)
-    "durationMin": 10,          // Inteiro entre 5 e 15
+    "steps": ["string", ...],  // 4 a 6 passos para conduzir em 5–10 min
+    "durationMin": 8,           // Inteiro entre 5 e 10
 
     // Campos condicionais — só o que o formato escolhido exige:
     "prompt": "string",        // OBRIGATÓRIO se format = "prompt-response"
     "scale": {                  // OBRIGATÓRIO se format = "scale-rating"
       "label": "string",
-      "options": ["string", "string", "string"]   // de 3 a 6 opções
+      "options": ["string", "string", "string", "string"]   // de 4 a 6 opções
     }
   }
 }
@@ -53,10 +60,13 @@ Este documento é o **contrato único** que descreve como um tema e uma dinâmic
 2. **Cores em HEX válido** (`#` + 6 dígitos hex). Prefira boa legibilidade; o app calcula o contraste do texto automaticamente.
 3. **`dynamic.format` deve ser um dos 3 valores suportados** (ver seção 3). Nunca crie um formato novo — escolha o que melhor encaixa no tema.
 4. **Campos condicionais**: inclua `prompt` só no formato `prompt-response`; inclua `scale` só no formato `scale-rating`. No `two-truths` não precisa de campo extra.
-5. **Textos curtos e no clima**: `tagline` ≤ 80, `instructions` ≤ 280. Sem markdown, sem quebras de linha.
-6. **Emojis**: 1 emoji por campo `emoji`.
-7. **Saída = só o JSON.** Nada de texto antes/depois, nada de ```` ```json ````. Um único objeto JSON válido.
-8. Se algum campo faltar ou vier inválido, o servidor **normaliza** com um valor seguro — mas o ideal é já vir completo.
+5. **`images`**: 3 a 6 prompts **em inglês**, estilo prompt de gerador de imagem, cada um descrevendo uma cena/objeto icônico e visualmente rico do tema. Variados entre si (não repita a mesma cena). São usados para gerar as ilustrações do quadro.
+6. **Dinâmica elaborada**: `goal` (por que vale a pena) + `steps` (4 a 6 passos de condução) + `durationMin` entre **5 e 10**. A atividade deve render uma conversa de verdade, não só 30 segundos.
+7. **Textos curtos e no clima**: `tagline` ≤ 80, `goal` ≤ 160, `instructions` ≤ 280. Português do Brasil (exceto `images`, que é em inglês). Sem markdown.
+8. **Emojis**: 1 emoji por campo `emoji`.
+9. **Sempre diferente**: cada retro deve ter um tema e uma dinâmica **novos**. Ao gerar, evite repetir temas/dinâmicas já usados (o servidor envia a lista dos já existentes).
+10. **Saída = só o JSON.** Nada de texto antes/depois, nada de ```` ```json ````. Um único objeto JSON válido.
+11. Se algum campo faltar ou vier inválido, o servidor **normaliza** com um valor seguro — mas o ideal é já vir completo.
 
 ---
 
@@ -95,6 +105,12 @@ Cada pessoa se classifica escolhendo **uma opção** de uma escala temática (`d
     "improve": "#f2b705",
     "action": "#e23b3b"
   },
+  "images": [
+    "epic star wars space battle with x-wings and star destroyer, cinematic, digital art",
+    "lightsaber duel on a dark planet, dramatic lighting",
+    "cute droid robot in a desert, stylized illustration",
+    "millennium falcon flying through hyperspace, vibrant"
+  ],
   "columns": {
     "good":    { "title": "A Força esteve conosco", "emoji": "✨", "hint": "Vitórias que iluminaram a sprint" },
     "improve": { "title": "O Lado Sombrio", "emoji": "🌑", "hint": "O que nos puxou pro lado negro" },
@@ -104,8 +120,16 @@ Cada pessoa se classifica escolhendo **uma opção** de uma escala temática (`d
     "format": "scale-rating",
     "title": "Jedi ou Sith?",
     "emoji": "⚔️",
+    "goal": "Medir o astral do time de forma leve e abrir conversa sobre altos e baixos da sprint.",
     "instructions": "Cada tripulante se classifica na escala da Força durante esta sprint. Revelamos juntos e comentamos!",
-    "durationMin": 10,
+    "steps": [
+      "Cada pessoa escolhe sua posição na Força em segredo (1 min).",
+      "O líder revela todas as escolhas de uma vez.",
+      "Quem ficou nos extremos (Jedi/Sith) comenta o porquê.",
+      "O time procura padrões e um aprendizado comum.",
+      "Definam 1 ação para equilibrar a Força na próxima sprint."
+    ],
+    "durationMin": 9,
     "scale": {
       "label": "Como esteve sua Força nesta sprint?",
       "options": ["Mestre Jedi", "Padawan", "Neutro da Força", "Flertei com o Lado Sombrio", "Full Sith"]
@@ -122,30 +146,34 @@ Cole o texto abaixo (e substitua `{TEMA}` por um tema, ou peça pra IA escolher 
 
 ```
 Você é o gerador de temas do RetroMaker. Gere UM tema de retrospectiva de Scrum
-divertido baseado em: "{TEMA}" (se vazio, escolha algo da cultura pop em alta).
+MUITO criativo baseado em: "{TEMA}" (se vazio, escolha algo da cultura pop em alta).
+Traga uma ideia ORIGINAL — evite repetir estes temas já usados: {LISTA_JA_USADOS}.
 
 Responda APENAS com um objeto JSON válido (sem texto extra, sem crases), seguindo
 EXATAMENTE este formato e regras:
 
 - Chaves de "columns" fixas: good, improve, action (só personalize title/emoji/hint).
-- "palette": 5 cores HEX (#rrggbb) legíveis e no clima do tema.
+- "palette": 5 cores HEX (#rrggbb) bonitas e no clima do tema.
+- "images": 3 a 6 prompts de arte EM INGLÊS de cenas/objetos icônicos do tema (variados).
 - "dynamic.format" DEVE ser um de: "two-truths", "prompt-response", "scale-rating".
   - two-truths: sem campos extras.
-  - prompt-response: inclua "dynamic.prompt" (uma pergunta temática).
-  - scale-rating: inclua "dynamic.scale" = { "label", "options" (3 a 6) }.
-- tagline <= 80 chars, instructions <= 280 chars, 1 emoji por campo "emoji".
-- durationMin: inteiro de 5 a 15.
+  - prompt-response: inclua "dynamic.prompt" (uma pergunta temática instigante).
+  - scale-rating: inclua "dynamic.scale" = { "label", "options" (4 a 6) }.
+- "dynamic" também tem "goal" (objetivo), "instructions" e "steps" (4 a 6 passos)
+  para uma atividade que dure de 5 a 10 minutos. durationMin: inteiro de 5 a 10.
+- tagline <= 80, goal <= 160, instructions <= 280 chars. 1 emoji por campo "emoji".
 
 Formato:
 {
   "themeName","tagline","emoji",
   "palette": { "bgTop","bgBottom","good","improve","action" },
+  "images": ["...", "..."],
   "columns": {
     "good": {"title","emoji","hint"},
     "improve": {"title","emoji","hint"},
     "action": {"title","emoji","hint"}
   },
-  "dynamic": { "format","title","emoji","instructions","durationMin", (+ "prompt" OU "scale" conforme o formato) }
+  "dynamic": { "format","title","emoji","goal","instructions","steps":["..."],"durationMin", (+ "prompt" OU "scale" conforme o formato) }
 }
 ```
 

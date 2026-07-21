@@ -12,9 +12,10 @@ import {
   listBoards,
   allBoardsWithCards,
   deleteBoard,
+  usedThemes,
   save,
 } from './store.js';
-import { generateSpec } from './ai.js';
+import { generateSpec, aiHealth } from './ai.js';
 import { normalizeSpec } from './spec.js';
 
 const PORT = process.env.PORT || 4000;
@@ -30,13 +31,13 @@ app.get('/api/boards', (_req, res) => res.json(listBoards()));
 app.post('/api/boards', async (req, res) => {
   const { title, prompt, spec: providedSpec } = req.body || {};
   // 1) se o cliente colou um spec pronto (de uma IA externa), usa ele.
-  // 2) senão, tenta gerar via IA a partir do "prompt" (tema).
+  // 2) senão, tenta gerar via IA a partir do "prompt" (tema), evitando repetir temas já usados.
   // 3) se a IA falhar, createBoard cai no fallback local automaticamente.
   let spec = null;
   if (providedSpec && typeof providedSpec === 'object') {
     spec = normalizeSpec(providedSpec);
   } else {
-    spec = await generateSpec(prompt || '');
+    spec = await generateSpec(prompt || '', usedThemes());
   }
   const board = createBoard({ title, spec });
   res.status(201).json(board);
@@ -44,8 +45,13 @@ app.post('/api/boards', async (req, res) => {
 
 // pré-visualizar/gerar um spec sem criar board (útil pra "regenerar tema")
 app.post('/api/spec/preview', async (req, res) => {
-  const spec = (await generateSpec(req.body?.prompt || '')) || normalizeSpec(null);
+  const spec = (await generateSpec(req.body?.prompt || '', usedThemes())) || normalizeSpec(null);
   res.json(spec);
+});
+
+// checagem de saúde da IA (valida provider/chave/modelo)
+app.get('/api/ai/health', async (_req, res) => {
+  res.json(await aiHealth());
 });
 
 app.get('/api/boards/:id', (req, res) => {
@@ -281,7 +287,8 @@ io.on('connection', (socket) => {
     const board = getBoard(bId());
     if (!board || !isHost()) return;
     io.to(bId()).emit('spec:generating', true);
-    const spec = (await generateSpec(prompt || '')) || normalizeSpec(null);
+    // evita repetir temas de OUTROS boards (mantém o próprio na lista tb, tudo bem)
+    const spec = (await generateSpec(prompt || '', usedThemes())) || normalizeSpec(null);
     board.spec = spec;
     board.theme = spec.themeName;
     board.game.entries = {}; // dinâmica mudou -> limpa respostas anteriores
