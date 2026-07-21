@@ -1,0 +1,31 @@
+# Deploy do RetroMaker no Render (https://render.com)
+# Um único Web Service serve API + WebSocket + o client já buildado.
+services:
+  - type: web
+    name: retromaker
+    runtime: node
+    plan: free # troque para "starter" (pago) se quiser disco persistente
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      # IA gratuita sem chave (padrão). Para trocar, veja server/.env.example
+      - key: AI_PROVIDER
+        value: pollinations
+      # Para usar Gemini/Groq/OpenRouter, defina AI_PROVIDER acima e a chave abaixo
+      # (marque como "secret" no painel do Render em vez de deixar aqui):
+      # - key: GEMINI_API_KEY
+      #   sync: false
+
+    # ------------------------------------------------------------------
+    # DISCO PERSISTENTE (opcional, requer plano pago).
+    # No plano free o histórico (server/data/boards.json) é apagado a cada
+    # deploy/reinício. Para manter os boards salvos entre deploys, use um
+    # plano pago e descomente o bloco abaixo:
+    # disk:
+    #   name: retromaker-data
+    #   mountPath: /opt/render/project/src/server/data
+    #   sizeGB: 1

@@ -1,0 +1,18 @@
+{
+  "name": "retromaker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RetroMaker - retrospectivas de Scrum divertidas, colaborativas e temáticas (MVP)",
+  "scripts": {
+    "setup": "npm install && npm --prefix server install && npm --prefix client install",
+    "dev": "concurrently -n server,client -c green,cyan \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "build": "npm --prefix client install --include=dev && npm --prefix client run build && npm --prefix server install",
+    "start": "npm --prefix server start"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

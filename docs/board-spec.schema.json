@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RetroMaker BoardSpec",
+  "description": "Contrato de tema + dinâmica de uma retrospectiva. Ver docs/BOARD_SPEC_CONSTITUTION.md",
+  "type": "object",
+  "required": ["themeName", "tagline", "emoji", "palette", "columns", "dynamic"],
+  "additionalProperties": false,
+  "properties": {
+    "themeName": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "tagline": { "type": "string", "maxLength": 80 },
+    "emoji": { "type": "string", "minLength": 1, "maxLength": 8 },
+    "palette": {
+      "type": "object",
+      "required": ["bgTop", "bgBottom", "good", "improve", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "bgTop": { "$ref": "#/$defs/hex" },
+        "bgBottom": { "$ref": "#/$defs/hex" },
+        "good": { "$ref": "#/$defs/hex" },
+        "improve": { "$ref": "#/$defs/hex" },
+        "action": { "$ref": "#/$defs/hex" }
+      }
+    },
+    "columns": {
+      "type": "object",
+      "required": ["good", "improve", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "good": { "$ref": "#/$defs/column" },
+        "improve": { "$ref": "#/$defs/column" },
+        "action": { "$ref": "#/$defs/column" }
+      }
+    },
+    "dynamic": {
+      "type": "object",
+      "required": ["format", "title", "emoji", "instructions", "durationMin"],
+      "properties": {
+        "format": { "enum": ["two-truths", "prompt-response", "scale-rating"] },
+        "title": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "emoji": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "instructions": { "type": "string", "maxLength": 280 },
+        "durationMin": { "type": "integer", "minimum": 5, "maximum": 15 },
+        "prompt": { "type": "string", "maxLength": 200 },
+        "scale": {
+          "type": "object",
+          "required": ["label", "options"],
+          "properties": {
+            "label": { "type": "string", "maxLength": 120 },
+            "options": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 6,
+              "items": { "type": "string", "minLength": 1, "maxLength": 40 }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "format": { "const": "prompt-response" } } },
+          "then": { "required": ["prompt"] }
+        },
+        {
+          "if": { "properties": { "format": { "const": "scale-rating" } } },
+          "then": { "required": ["scale"] }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "hex": { "type": "string", "pattern": "^#([0-9a-fA-F]{6})$" },
+    "column": {
+      "type": "object",
+      "required": ["title", "emoji", "hint"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "emoji": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "hint": { "type": "string", "maxLength": 120 }
+      }
+    }
+  }
+}
