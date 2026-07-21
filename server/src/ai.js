@@ -147,7 +147,7 @@ const GEMINI_SCHEMA = {
 async function callGemini(promptText, signal) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error('GEMINI_API_KEY ausente');
-  const model = process.env.AI_MODEL || 'gemini-2.5-flash';
+  const model = process.env.AI_MODEL || 'gemini-3.5-flash';
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
@@ -206,10 +206,27 @@ async function callProvider(promptText, signal) {
 
 export function currentModel() {
   if (process.env.AI_MODEL) return process.env.AI_MODEL;
-  return PROVIDER === 'gemini' ? 'gemini-2.5-flash'
+  return PROVIDER === 'gemini' ? 'gemini-3.5-flash'
     : PROVIDER === 'groq' ? 'llama-3.3-70b-versatile'
     : PROVIDER === 'openrouter' ? 'meta-llama/llama-3.3-70b-instruct:free'
     : 'openai';
+}
+
+// Lista os modelos Gemini que a chave atual pode usar (para diagnóstico).
+async function listGeminiModels() {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return [];
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+      headers: { 'x-goog-api-key': key },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.models || [])
+      .filter((m) => (m.supportedGenerationMethods || []).includes('generateContent'))
+      .map((m) => (m.name || '').replace('models/', ''))
+      .filter((n) => n.startsWith('gemini'));
+  } catch { return []; }
 }
 
 /**
@@ -246,7 +263,12 @@ export async function aiHealth() {
       sample: parsed?.themeName || null,
     };
   } catch (err) {
-    return { provider, model, ok: false, ms: Date.now() - t0, message: err.message };
+    // se for Gemini, lista os modelos disponíveis pra facilitar corrigir o AI_MODEL
+    const availableModels = provider === 'gemini' ? await listGeminiModels() : undefined;
+    const hint = /404/.test(err.message) && availableModels?.length
+      ? ` Dica: defina AI_MODEL para um destes: ${availableModels.slice(0, 8).join(', ')}.`
+      : '';
+    return { provider, model, ok: false, ms: Date.now() - t0, message: err.message + hint, availableModels };
   }
 }
 

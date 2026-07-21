@@ -112,7 +112,7 @@ Para ativar o Gemini, crie um `server/.env` (baseado em `server/.env.example`) c
 ```
 AI_PROVIDER=gemini
 GEMINI_API_KEY=sua_chave_aqui
-# opcional: AI_MODEL=gemini-2.5-flash  (ou gemini-2.5-pro pra máxima qualidade)
+# opcional: AI_MODEL=gemini-3.5-flash  (ou gemini-3.5-pro pra máxima qualidade)
 ```
 
 Gere a chave em https://aistudio.google.com/apikey. Também dá pra usar Groq/OpenRouter. Sem internet ou com erro, cai num **banco de temas local** — nunca quebra.

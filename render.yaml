@@ -17,7 +17,7 @@ services:
       - key: AI_PROVIDER
         value: gemini
       - key: AI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-3.5-flash
       - key: GEMINI_API_KEY
         sync: false # <- cole a chave no painel do Render (Environment), não aqui
       # Alternativa grátis sem chave: troque AI_PROVIDER para "pollinations".
