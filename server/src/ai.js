@@ -5,7 +5,7 @@
 import { normalizeSpec, DYNAMIC_FORMATS } from './spec.js';
 
 const PROVIDER = (process.env.AI_PROVIDER || 'pollinations').toLowerCase();
-const TIMEOUT = Number(process.env.AI_TIMEOUT_MS || 20000);
+const TIMEOUT = Number(process.env.AI_TIMEOUT_MS || 45000);
 
 const SYSTEM = `Você é o gerador de temas do RetroMaker. Responda SEMPRE apenas com um objeto JSON válido (sem texto extra, sem crases).`;
 
@@ -159,6 +159,11 @@ async function callGemini(promptText, signal) {
         responseMimeType: 'application/json',
         responseSchema: GEMINI_SCHEMA, // força o formato -> acaba com temas malformados
         temperature: 1.0,
+        // opcional: reduz/desliga o "thinking" p/ ganhar velocidade (ex.: 0 desliga em modelos flash).
+        // Só é enviado se GEMINI_THINKING_BUDGET estiver definido no .env.
+        ...(process.env.GEMINI_THINKING_BUDGET != null && process.env.GEMINI_THINKING_BUDGET !== ''
+          ? { thinkingConfig: { thinkingBudget: Number(process.env.GEMINI_THINKING_BUDGET) } }
+          : {}),
       },
     }),
   });
@@ -263,12 +268,17 @@ export async function aiHealth() {
       sample: parsed?.themeName || null,
     };
   } catch (err) {
+    const aborted = /abort/i.test(err.message);
     // se for Gemini, lista os modelos disponíveis pra facilitar corrigir o AI_MODEL
     const availableModels = provider === 'gemini' ? await listGeminiModels() : undefined;
-    const hint = /404/.test(err.message) && availableModels?.length
-      ? ` Dica: defina AI_MODEL para um destes: ${availableModels.slice(0, 8).join(', ')}.`
-      : '';
-    return { provider, model, ok: false, ms: Date.now() - t0, message: err.message + hint, availableModels };
+    let message = err.message;
+    if (aborted) {
+      message = `Tempo esgotado (timeout de ${TIMEOUT / 1000}s). O modelo "${model}" demorou demais. `
+        + 'Tente um modelo mais rápido (ex.: gemini-2.0-flash ou gemini-flash-latest) ou aumente AI_TIMEOUT_MS.';
+    } else if (/404/.test(err.message) && availableModels?.length) {
+      message += ` Dica: defina AI_MODEL para um destes: ${availableModels.slice(0, 8).join(', ')}.`;
+    }
+    return { provider, model, ok: false, ms: Date.now() - t0, message, availableModels };
   }
 }
 
